@@ -2,7 +2,7 @@ package model
 
 import "fmt"
 
-const checkmark string = "✓"
+const completeMarker string = "[✓]"
 
 type Task struct {
 	Name string
@@ -11,7 +11,7 @@ type Task struct {
 
 func (task Task) String() string {
 	if task.Complete {
-		return fmt.Sprintf("%s %s", checkmark, task.Name)
+		return fmt.Sprintf("%s %s", completeMarker, task.Name)
 	} else {
 		return task.Name
 	}

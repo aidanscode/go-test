@@ -2,58 +2,50 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 
 	"github.com/AidansCode/go-test/model"
 )
 
-var commandMappings = map[string] func(t []model.Task)bool {
-	"add": add,
-	"list": list,
-	"complete": complete,
-	"delete": delete,
-	"sort": sort,
+var commandMappings = map[string] func(args []string, t []model.Task)([]model.Task, bool) {
+	"add": Add,
+	"list": List,
+	"complete": Complete,
+	"delete": Delete,
+	"sort": Sort,
+	"help": Help,
 }
 
-func ExecuteCommand(args []string, tasks []model.Task) (bool, error) {
-	command := getCommand(args)
+const defaultCommand string = "list"
+
+func ExecuteCommand(args []string, tasks []model.Task) ([]model.Task, bool, error) {
+	command, subArgs := getCommand(args)
 	handler, exists := commandMappings[command]
 	if !exists {
-		return false, errors.New("Command does not exist: " + command)
+		return tasks, false, errors.New("Command does not exist: " + command)
 	}
 
-	return handler(tasks), nil
+	tasks, isDirty := handler(subArgs, tasks)
+	return tasks, isDirty, nil
 }
 
-func getCommand(args []string) string {
+func getCommand(args []string) (string, []string) {
 	if len(args) > 1 {
-		return args[1]
+		return args[1], args[2:]
 	} else {
-		return "list"
+		return defaultCommand, make([]string, 0)
 	}
 }
 
-func add(tasks []model.Task) bool {
-	fmt.Println("Adding task")
-	return true
-}
+func findTaskIdFromArgs(args []string) (int, error) {
+	if len(args) == 0 {
+		return 0, errors.New("no task id provided")
+	}
 
-func list(tasks []model.Task) bool {
-	fmt.Println("Listing tasks")
-	return false
-}
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return 0, errors.New("invalid task id provided")
+	}
 
-func complete(tasks []model.Task) bool {
-	fmt.Println("Completing task")
-	return true
-}
-
-func delete(tasks []model.Task) bool {
-	fmt.Println("Deleting task")
-	return true
-}
-
-func sort(tasks []model.Task) bool {
-	fmt.Println("Sorting tasks")
-	return true
+	return id, nil
 }
